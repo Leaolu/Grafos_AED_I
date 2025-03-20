@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdbool.h>
 #include <stdlib.h>
+#include "Fila.c"
 
 int V = 4;
 
@@ -14,6 +15,9 @@ typedef struct s{
 typedef struct {
     NO* inicio;
     int flag;
+    int tipo;
+    int nivel;
+    int via;
 }Vertice;
 
 Vertice* inicializarVertice(int V){
@@ -192,29 +196,93 @@ int ZeroFlags(Vertice* g){
     return maior;
 }
 
+//busca em largura
+//necessita do campo flag do Vertice
 void largura(Vertice* g, int i){
     zerarFlags(g);
-    Fila* f;
-    inicializarFila(&f);
-    EntrarFila(&f, i);
+    Fila* f = inicializarFila();
+    EntrarFila(f, i);
     g[i].flag = 1; //discovered
     while(f){
-        i = SairFila(&f);
+        i = SairFila(f);
         g[i].flag = 2;
         NO* p = g[i].inicio;
         while(p){
             if(g[p->adj].flag == 0){
                 g[p->adj].flag = 1;
-                EntrarFila(&f, p->adj);
+                EntrarFila(f, p->adj);
             }
             p = p->prox;
         }
     }
 }
 
+//Partindo do nivel i, quero todos os vertices a uma distancia de no maximo N de i que tem o tipo 1
+//precisa dos campos nivel, tipo e flag do Vertice
+void exibirEmPrio(Vertice* g, int i, int N){
+    zerarFlags(g);
+    for(int j = 0; j < V; j++){
+        g[j].nivel = -1;
+    }
+    g[i].nivel = 0;
+    g[i].flag = 1;
+    Fila* f = inicializarFila();
+    EntrarFila(f, i);
+    while(f){
+        i = SairFila(f);
+        g[i].flag = 2;
+        NO* p = g[i].inicio;
+        while(p){
+            if(g[p->adj].flag == 0){
+                g[p->adj].flag = 1;
+                EntrarFila(f, p->adj);
+                g[p->adj].nivel = g[i].nivel + 1;
+                if(g[p->adj].nivel <= N && g[p->adj].tipo == 1){
+                    printf("%d ", p->adj);
+                } else {
+                    while(f) SairFila(f);
+                    return;
+                }
+            }//flag 0
+            p = p->prox;
+        }
+    }
+    while(f) SairFila(f);
+}
 
-//Crie um grafo h movendo as arestas que incidem sobre i, DICA: nao use malloc
-//fazer uma copia transposta de g em um novo grafo h
+//Busca e exibe o menor caminho de i ate j
+//necessita 
+void exibirVia(Vertice* g, int i, int d){
+    zerarFlags(g);
+    for(int j = 0; j < V; j++){
+        g[j].via = -1;
+    }
+    g[i].via= 0;
+    g[i].flag = 1;
+    Fila* f = inicializarFila();
+    EntrarFila(f, i);
+    while(f){
+        i = SairFila(f);
+        g[i].flag = 2;
+        NO* p = g[i].inicio;
+        while(p){
+            if(g[p->adj].flag == 0){
+                g[p->adj].flag = 1;
+                EntrarFila(f, p->adj);
+                g[p->adj].via = i;
+            }//flag 0
+            if(p->adj == d){
+                Vertice* pr = &g[p->adj];
+                while(pr){
+                    printf("%d ", p->adj);
+                    pr = &g[pr->via];
+                }
+                return;
+            }
+            p = p->prox;
+        }
+    }
+}
 
 void main(){
     Vertice* h = inicializarVertice(V);
