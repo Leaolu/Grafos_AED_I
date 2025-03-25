@@ -123,7 +123,7 @@ int zerarFlags(Vertice* g){
         g[i].flag = 0;
     }
 }
-//se falg=2 quer dizer que esse elemento eh conectado com i
+//se flag=2 quer dizer que esse elemento eh conectado com i
 void prof(Vertice* g, int i, bool* ciclo,int* count){
     g[i].flag = 1; //descoberto
     NO* p = g[i].inicio;
@@ -137,16 +137,8 @@ void prof(Vertice* g, int i, bool* ciclo,int* count){
     g[i].flag = 2;
 }
 
-/*
-void profMatricial(Matriz m[V][V], int i, flag[V], bool ciclo){
-    flag[i] = 1;
-    for(int j = 0; j <= V; i++){
-        if(flag[j] == 1) ciclo = true;
-        if(m[i][j] == 1 && flag[j] == 0) prof(m, j, flag, ciclo);
-    }
-    flag[i] = 2;
-}
-*/
+
+
 
 //copia o valor do NO no inicio do novo grafo e libera a memoria ocupada no grafo original, no fim coloca o inicio daquela linha como nulo
 Vertice moverVertice(Vertice* g, int i){
@@ -160,7 +152,6 @@ Vertice moverVertice(Vertice* g, int i){
 Vertice* copiaTransposta(Vertice* g, int V){
     Vertice* copia = inicializarVertice(V);
     NO* atual = NULL;
-
     for(int i = 0; i <= V; i++){
         atual = g[i].inicio;
         while(atual){
@@ -171,7 +162,6 @@ Vertice* copiaTransposta(Vertice* g, int V){
             atual = atual->prox;
         }
     }
-
     return copia;
 }
 
@@ -250,6 +240,8 @@ void exibirEmPrio(Vertice* g, int i, int N){
     while(f) SairFila(f);
 }
 
+
+
 //Busca e exibe o menor caminho de i ate j
 //necessita 
 void exibirVia(Vertice* g, int i, int d){
@@ -283,6 +275,107 @@ void exibirVia(Vertice* g, int i, int d){
         }
     }
 }
+
+//Busca de profundidade matricial
+/*void profMatricial(int m[V][V], int i,int flag[V], bool ciclo){
+    flag[i] = 1;
+    for(int j = 0; j <= V; i++){
+        if(flag[j] == 1) ciclo = true;
+        if(m[i][j] == 1 && flag[j] == 0) prof(m, j, flag, ciclo);
+    }
+    flag[i] = 2;
+}*/
+
+//Zerar flags em matriz
+void zerarFlagsMatriz(int flag[V+1]){
+    for(int i = 0; i <= V; i++){
+        flag[i] = 0;
+    }
+}
+//Busca em largura na forma matricial
+void BuscaLargura(int m[V][V], int i, int destino, int flag[V]){
+    Fila* f;
+    inicializarFila(f);
+    EntrarFila(f, i);
+    int aux[V];
+    zerarFlagsMatriz(aux);
+    aux[i] = 1;
+    while(f){
+        i = SairFila(f);
+        aux[i] = 2;
+        int j;
+        for(j = 0; j <= V; j++){
+            if(m[i][j] == 1 && aux[j] == 0){
+                if(j == destino) break;
+                aux[j] = 1;
+                EntrarFila(f, j);
+            }
+        }
+    }
+    if(aux[destino] == 0) return;
+    for(int j = 0; j <= V; j++){
+        if(aux[j] == 2) flag[j] = 2;
+    }
+}
+
+//Exibir todos os vértices de onde é possível alcançar o destino(Versao Matricial)
+//Zerar flags antes de utilizar:
+void exibirOrigens(int m[V][V], int dest, int flag[V]){
+    int i;
+    for(i = 0; i <= V; i++){
+        if(i == dest || flag[i]>0) continue;
+        BuscaLargura(m, i, dest, flag);
+    }
+    for(i = 0; i <= V; i++){
+        if(flag[i] > 0) printf("%d ", i);
+    }
+
+}
+
+bool arestaExistente(Vertice* g, int i, int dest){
+    NO* atual = g[i].inicio;
+    while(atual){
+        if(atual->adj == dest) return true;
+        atual = atual->prox;
+    }
+    return false;
+}
+
+bool caminhoExiste(Vertice* g, int tamanho ,int c[tamanho]){
+    if(tamanho < 2) return false;
+    for(int j; j < tamanho-1; j++){
+            if(!arestaExistente(g, c[j], c[j+1]))return false;
+    }
+    return true;
+}
+
+bool subgrafo(int m[V][V], Vertice* g){
+    for(int i = 0; i <= V; i++){
+        for(int j = 0; j <= V; j++){
+            if(m[i][j] == 1){
+                if(!arestaExistente(g, i, j)) return false;
+            }
+        }
+    }
+    return true;
+}
+
+
+/*int maiorCaminho(Vertice*g, int i){
+    int[V] resposta;
+    int j;
+    for(j = 0; j <= V; j++){
+        if(j == i) continue;
+        resposta[j] = menorCaminhoLargura(g, j, i);
+    }
+    int response = 0;
+    for(j = 0; j < V; j++){
+        if(response <  resposta[j]) response = resposta[j];
+    }
+    return response;
+}*/
+
+
 
 void main(){
     Vertice* h = inicializarVertice(V);
