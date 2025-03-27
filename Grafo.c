@@ -2,6 +2,7 @@
 #include <stdbool.h>
 #include <stdlib.h>
 #include "Fila.c"
+#include <limits.h>
 
 int V = 4;
 
@@ -18,6 +19,7 @@ typedef struct {
     int tipo;
     int nivel;
     int via;
+    int custo;
 }Vertice;
 
 Vertice* inicializarVertice(int V){
@@ -360,9 +362,31 @@ bool subgrafo(int m[V][V], Vertice* g){
     return true;
 }
 
+int menorCaminhoLargura(Vertice*g, int j, int i){
+    zerarFlags(g);
+    Fila* f = inicializarFila();
+    EntrarFila(f, i);
+    g[i].flag = 1; //discovered
+    g[i].custo = 0;
+    while(f){
+        i = SairFila(f);
+        g[i].flag = 2;
+        NO* p = g[i].inicio;
+        while(p){
+            if(g[p->adj].flag == 0){
+                g[p->adj].flag = 1;
+                g[p->adj].custo = p->custo + 1;
+                if(p->adj == i) return g[p->adj].custo;
+                EntrarFila(f, p->adj);
+            }
+            p = p->prox;
+        }
+    }
+}
 
-/*int maiorCaminho(Vertice*g, int i){
-    int[V] resposta;
+
+int maiorCaminho(Vertice*g, int i){
+    int resposta[V];
     int j;
     for(j = 0; j <= V; j++){
         if(j == i) continue;
@@ -370,10 +394,50 @@ bool subgrafo(int m[V][V], Vertice* g){
     }
     int response = 0;
     for(j = 0; j < V; j++){
-        if(response <  resposta[j]) response = resposta[j];
+        if(response >  resposta[j]) response = resposta[j];
     }
     return response;
-}*/
+}
+
+void dijkstra(Vertice* g, int i){
+    int j;
+    for(j = 0; j <= V; j++){
+        g[j].flag = 0;
+        g[j].custo = INT_MAX;
+        g[j].via = -1;
+    }
+    g[i].custo = 0;
+    g[i].via = 0;
+    int z = i;
+    while(z > -1){
+        g[z].flag = 1;//Passo 1
+        //inicio passo 2
+        NO* p = g[z].inicio;
+        while(p){
+            if(g[p->adj].flag == 0){
+                int aux = g[p->adj].custo;
+                if(aux < g[p->adj].custo){
+                    g[p->adj].custo = aux;
+                    g[p->adj].via = z;
+                }
+            }
+            p = p->prox;
+        }
+        //fim passo 2, inicio passo 3
+        z = -1;
+        int menorCusto = INT_MAX;
+        for(j = 1; j <= V; j++){
+            if(g[j].flag == 0){
+                if(g[j].custo < menorCusto){
+                    menorCusto = g[j].custo;
+                    z = j;
+                }
+            }
+        }
+        //Fim do passo 3
+    }
+}
+//Custo muito alto para esse algoritmo, o utilizado na realidade é feito de outra maneira utilizando uma fila de prioridade nessa busca
 
 
 
